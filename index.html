@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Breaker Parameters Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 12px;
+        }
+        .input-section, .output-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e6ed;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.9rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 5px 9px;
+            border: 2px solid #e0e6ed;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        .unit {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-left: 5px;
+        }
+        .result-group {
+            margin-bottom: 14px;
+            padding: 8px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        .result-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+        .result-formula {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 4px 6px;
+            border-radius: 3px;
+        }
+        .validation {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .validation.valid {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        .validation.invalid {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        .formula-section {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .formula-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #ecf0f1;
+        }
+        .formula-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .formula-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            backdrop-filter: blur(5px);
+        }
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr 1fr;
+                gap: 18px;
+                padding: 18px;
+            }
+            
+            .formula-section {
+                grid-column: 1 / -1;
+                margin-top: 16px;
+            }
+            
+            .formula-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 12px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .formula-section {
+                grid-column: 1 / -1;
+                margin-top: 16px;
+            }
+            
+            .formula-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        .highlight {
+            animation: pulse 2s ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Circuit Breaker Parameters Calculator</h1>
+            <p>Calculate optimal circuit breaker parameters for Polly with linear backoff retry policies</p>
+        </div>
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">Input Parameters</h2>
+                
+                <div class="form-group">
+                    <label for="budget">B - Total Budget (Overall Timeout) <span class="unit">seconds</span></label>
+                    <input type="number" id="budget" min="1" max="300" value="60" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="timeout">T - Timeout per Request <span class="unit">seconds</span></label>
+                    <input type="number" id="timeout" min="1" max="60" value="5" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label for="retries">R - Number of Retries</label>
+                    <input type="number" id="retries" min="0" max="10" value="3" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="backoffStrategy">Backoff Strategy</label>
+                    <select id="backoffStrategy">
+                        <option value="linear">Linear Backoff</option>
+                        <option value="exponential">Exponential Backoff</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="delay">D - Base Delay <span class="unit">seconds</span></label>
+                    <input type="number" id="delay" min="0" max="10" value="2" step="0.1">
+                </div>
+                <div class="form-group" id="exponentialGroup" style="display: none;">
+                    <label for="multiplier">Exponential Multiplier</label>
+                    <input type="number" id="multiplier" min="1.1" max="5" value="2" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="failureThreshold">F - Failure Threshold <span class="unit">percentage (0.1-1.0)</span></label>
+                    <input type="number" id="failureThreshold" min="0.1" max="1.0" value="0.7" step="0.05">
+                </div>
+                <div class="form-group">
+                    <label for="endpointType">Endpoint Traffic Level</label>
+                    <select id="endpointType">
+                        <option value="high">High Traffic (e.g., user login, search)</option>
+                        <option value="medium">Medium Traffic (e.g., profile updates)</option>
+                        <option value="low">Low Traffic (e.g., admin operations)</option>
+                        <option value="custom">Custom Value</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customThroughputGroup" style="display: none;">
+                    <label for="minThroughput">Custom Minimum Throughput</label>
+                    <input type="number" id="minThroughput" min="1" max="100" value="15" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="breakMultiplier">Break Duration Multiplier <span class="unit">(1x or 2x conservative)</span></label>
+                    <input type="number" id="breakMultiplier" min="1" max="3" value="2" step="0.5">
+                </div>
+            </div>
+            <div class="output-section">
+                <h2 class="section-title">Circuit Breaker Parameters</h2>
+                
+                <div class="result-group">
+                    <div class="result-label">Total Execution Time (TET)</div>
+                    <div class="result-value" id="tetValue">32 seconds</div>
+                    <div class="result-formula" id="tetFormula">TET = D×(R×(R+1)/2) + T×(R+1)</div>
+                </div>
+                <div class="result-group">
+                    <div class="result-label">Observation Window (W)</div>
+                    <div class="result-value" id="windowValue">32 seconds</div>
+                    <div class="result-formula" id="windowFormula">W = (R+1)×T + D×(R×(R+1)/2)</div>
+                </div>
+                <div class="result-group">
+                    <div class="result-label">Duration of Break (O)</div>
+                    <div class="result-value" id="breakValue">64 seconds</div>
+                    <div class="result-formula">O = W × Break Multiplier</div>
+                </div>
+                <div class="result-group">
+                    <div class="result-label">Failure Threshold</div>
+                    <div class="result-value" id="thresholdValue">70%</div>
+                    <div class="result-formula">F = User specified percentage</div>
+                </div>
+                <div class="result-group">
+                    <div class="result-label">Minimum Throughput</div>
+                    <div class="result-value" id="throughputValue">15 requests</div>
+                    <div class="result-formula" id="throughputFormula">Auto-selected based on traffic level</div>
+                </div>
+                <div class="result-group" id="throughputGuidanceGroup">
+                    <div class="result-label">Throughput Analysis</div>
+                    <div class="result-value" id="throughputAnalysis" style="font-size: 0.85rem; line-height: 1.3;">
+                        Analysis will appear here
+                    </div>
+                </div>
+                <div class="validation" id="validation">
+                    ✅ Configuration is valid: TET ≤ Budget
+                </div>
+            </div>
+            <div class="formula-section">
+                <h3 class="formula-title">Key Formulas & Definitions</h3>
+                <div class="formula-list">
+                    <div class="formula-item">
+                        <strong>Total Execution Time (Linear):</strong><br><br>
+                        TET = D×(R×(R+1)/2) + T×(R+1)<br><br>
+                        <em>Maximum time for one complete operation with linear backoff</em>
+                    </div>
+                    <div class="formula-item">
+                        <strong>Total Execution Time (Exponential):</strong><br><br>
+                        TET = D×(M^R - 1)/(M - 1) + T×(R+1)<br><br>
+                        <em>Maximum time for one complete operation with exponential backoff</em>
+                    </div>
+                    <div class="formula-item">
+                        <strong>Observation Window:</strong><br><br>
+                        W = TET (Time for complete retry cycle)<br><br>
+                        <em>Time window for circuit breaker to observe failures</em>
+                    </div>
+                    <div class="formula-item">
+                        <strong>Linear Backoff:</strong><br><br>
+                        Delay(i) = D × i<br><br>
+                        <em>Delay increases linearly with retry attempt</em>
+                    </div>
+                    <div class="formula-item">
+                        <strong>Exponential Backoff:</strong><br><br>
+                        Delay(i) = D × M^(i-1)<br><br>
+                        <em>Delay grows exponentially with multiplier M</em>
+                    </div>
+                    <div class="formula-item">
+                        <strong>Constraint:</strong><br><br>
+                        TET ≤ B<br><br>
+                        <em>Total execution time must not exceed overall timeout budget</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function calculateParameters() {
+            // Get input values
+            const B = parseFloat(document.getElementById('budget').value) || 60;
+            const T = parseFloat(document.getElementById('timeout').value) || 5;
+            const R = parseInt(document.getElementById('retries').value) || 3;
+            const D = parseFloat(document.getElementById('delay').value) || 2;
+            const F = parseFloat(document.getElementById('failureThreshold').value) || 0.7;
+            const breakMultiplier = parseFloat(document.getElementById('breakMultiplier').value) || 2;
+            const strategy = document.getElementById('backoffStrategy').value;
+            const M = parseFloat(document.getElementById('multiplier').value) || 2;
+            const endpointType = document.getElementById('endpointType').value;
+            let totalDelays;
+            let tetFormula;
+            let windowFormula;
+            if (strategy === 'linear') {
+                // Linear backoff: D×(R×(R+1)/2)
+                totalDelays = D * (R * (R + 1) / 2);
+                tetFormula = 'TET = D×(R×(R+1)/2) + T×(R+1)';
+                windowFormula = 'W = (R+1)×T + D×(R×(R+1)/2)';
+            } else {
+                // Exponential backoff: D×(M^R - 1)/(M - 1)
+                // This is the sum of geometric series: D + D×M + D×M² + ... + D×M^(R-1)
+                if (M === 1) {
+                    totalDelays = D * R; // Special case when multiplier is 1
+                } else {
+                    totalDelays = D * (Math.pow(M, R) - 1) / (M - 1);
+                }
+                tetFormula = 'TET = D×(M^R - 1)/(M - 1) + T×(R+1)';
+                windowFormula = 'W = TET (Complete retry cycle time)';
+            }
+            // Calculate TET (Total Execution Time)
+            const totalTimeouts = T * (R + 1);
+            const TET = totalDelays + totalTimeouts;
+            // Observation Window (W) - same as TET for both strategies
+            const W = TET;
+            // Duration of Break (O)
+            const O = W * breakMultiplier;
+            // Determine minimum throughput based on endpoint type
+            let minThroughput;
+            let throughputFormula;
+            
+            if (endpointType === 'custom') {
+                minThroughput = parseInt(document.getElementById('minThroughput').value) || 15;
+                throughputFormula = 'Custom value specified';
+            } else {
+                switch (endpointType) {
+                    case 'high':
+                        //minThroughput = Math.max(10, Math.ceil(R * 1.5));
+                        minThroughput = Math.min(10, R + 1);
+                        //throughputFormula = 'High traffic: max(10, R×1.5)';
+                        throughputFormula = 'High traffic: min(10, R + 1)';
+                        break;
+
+                    case 'medium':
+                        // minThroughput = Math.max(5, R);
+                        minThroughput = Math.min(5, R + 1);
+                        //throughputFormula = 'Medium traffic: max(5, R)';
+                        throughputFormula = 'Medium traffic: min(5, R + 1)';
+                        break;
+
+                    case 'low':
+                        // minThroughput = Math.max(2, Math.ceil(R * 0.5));
+                       	minThroughput = Math.min(2, R + 1);
+                       	// throughputFormula = 'Low traffic: max(2, R×0.5)';
+			            throughputFormula = 'Low traffic: min(2, R + 1)';
+                        break;
+                }
+            }
+            // Calculate requests per sampling window for analysis
+            const avgRequestsPerWindow = calculateRequestsPerWindow(W, endpointType);
+            // Update display values
+            document.getElementById('tetValue').textContent = `${TET.toFixed(1)} seconds`;
+            document.getElementById('windowValue').textContent = `${W.toFixed(1)} seconds`;
+            document.getElementById('breakValue').textContent = `${O.toFixed(1)} seconds`;
+            document.getElementById('thresholdValue').textContent = `${(F * 100).toFixed(0)}%`;
+            document.getElementById('throughputValue').textContent = `${minThroughput} requests`;
+            // Update formulas
+            document.getElementById('tetFormula').textContent = tetFormula;
+            document.getElementById('windowFormula').textContent = windowFormula;
+            document.getElementById('throughputFormula').textContent = throughputFormula;
+            // Throughput analysis
+            const throughputAnalysis = analyzeThroughput(minThroughput, avgRequestsPerWindow, W, TET, endpointType);
+            document.getElementById('throughputAnalysis').innerHTML = throughputAnalysis;
+            // Validation
+            const validationElement = document.getElementById('validation');
+            const isValid = TET <= B;
+            
+            if (isValid) {
+                validationElement.className = 'validation valid';
+                validationElement.innerHTML = `✅ Configuration is valid: TET (${TET.toFixed(1)}s) ≤ Budget (${B}s)`;
+            } else {
+                validationElement.className = 'validation invalid';
+                validationElement.innerHTML = `❌ Configuration is invalid: TET (${TET.toFixed(1)}s) > Budget (${B}s)<br>
+                    <small>Reduce retries, delays, multiplier, or per-request timeout</small>`;
+            }
+            // Add highlight animation to updated results
+            document.querySelectorAll('.result-group').forEach(group => {
+                group.classList.add('highlight');
+                setTimeout(() => group.classList.remove('highlight'), 2000);
+            });
+            // Show delay breakdown for educational purposes
+            showDelayBreakdown(strategy, D, R, M);
+        }
+        function calculateRequestsPerWindow(windowSeconds, trafficLevel) {
+            // Rough estimates for different traffic levels (requests per second)
+            const trafficRates = {
+                'high': 10,    // 10 req/sec
+                'medium': 1,   // 1 req/sec  
+                'low': 0.1     // 1 req per 10 seconds
+            };
+            
+            return Math.round(windowSeconds * (trafficRates[trafficLevel] || 1));
+        }
+        function analyzeThroughput(minThroughput, expectedRequests, window, tet, trafficLevel) {
+            let analysis = `Expected ~${expectedRequests} requests in ${window.toFixed(1)}s window<br>`;
+            
+            if (expectedRequests < minThroughput) {
+                analysis += `⚠️ <strong>Warning:</strong> Expected requests (${expectedRequests}) < min throughput (${minThroughput})<br>`;
+                analysis += `Circuit breaker may not have enough data to make decisions<br>`;
+                
+                if (trafficLevel === 'low') {
+                    analysis += `💡 <strong>Consider:</strong> Circuit breaker may not be suitable for this low-traffic endpoint`;
+                } else {
+                    analysis += `💡 <strong>Suggestion:</strong> Reduce min throughput to ${Math.max(2, Math.ceil(expectedRequests * 0.8))}`;
+                }
+            } else {
+                analysis += `✅ Sufficient traffic for statistical significance<br>`;
+                analysis += `Circuit breaker will have adequate data for failure rate calculation`;
+            }
+            // Add timing context
+            const maxOpsInWindow = Math.floor(window / tet);
+            if (maxOpsInWindow < 2) {
+                analysis += `<br>📊 <strong>Note:</strong> Only ~${maxOpsInWindow} complete operation(s) possible per window due to long TET`;
+            }
+            
+            return analysis;
+        }
+        function toggleCustomThroughput() {
+            const endpointType = document.getElementById('endpointType').value;
+            const customGroup = document.getElementById('customThroughputGroup');
+            
+            if (endpointType === 'custom') {
+                customGroup.style.display = 'block';
+            } else {
+                customGroup.style.display = 'none';
+            }
+        }
+        function showDelayBreakdown(strategy, D, R, M) {
+            // This function could be used to show individual delay values
+            // For now, we'll just log them to console for debugging
+            console.log(`${strategy.charAt(0).toUpperCase() + strategy.slice(1)} Backoff Delays:`);
+            for (let i = 1; i <= R; i++) {
+                let delay;
+                if (strategy === 'linear') {
+                    delay = D * i;
+                } else {
+                    delay = D * Math.pow(M, i - 1);
+                }
+                console.log(`Retry ${i}: ${delay.toFixed(2)}s`);
+            }
+        }
+        function toggleExponentialFields() {
+            const strategy = document.getElementById('backoffStrategy').value;
+            const exponentialGroup = document.getElementById('exponentialGroup');
+            
+            if (strategy === 'exponential') {
+                exponentialGroup.style.display = 'block';
+            } else {
+                exponentialGroup.style.display = 'none';
+            }
+        }
+        // Add event listeners to all inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', calculateParameters);
+                input.addEventListener('change', calculateParameters);
+            });
+            
+            // Add specific listener for backoff strategy change
+            document.getElementById('backoffStrategy').addEventListener('change', function() {
+                toggleExponentialFields();
+                calculateParameters();
+            });
+            // Add specific listener for endpoint type change
+            document.getElementById('endpointType').addEventListener('change', function() {
+                toggleCustomThroughput();
+                calculateParameters();
+            });
+            
+            // Initial setup
+            toggleExponentialFields();
+            toggleCustomThroughput();
+            calculateParameters();
+        });
+        // Add some visual feedback for input changes
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
